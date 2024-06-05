@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mock Stock Market</title>
+<style>
+  /* Basic styling */
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+    position: relative; /* Add relative positioning to the body */
+  }
+  .container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  h1, h2, h3 {
+    text-align: center;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  th {
+    background-color: #f2f2f2;
+  }
+  .button {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #4caf50;
+    color: #fff;
+    text-decoration: none;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .button:hover {
+    background-color: #45a049;
+  }
+  /* Style for control box */
+  .control-box {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 10px;
+    background-color: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Mock Stock Market</h1>
+  <div class="control-box">
+    <h3>Market Controls</h3>
+    <button class="button" onclick="toggleMarket()">Toggle Market</button>
+    <button class="button" onclick="toggleMarketStatus()">Toggle Market Status</button>
+    <div id="marketSettings" style="display: none;">
+      <h3>Set Stock Prices</h3>
+      <label for="companyName">Company Name:</label>
+      <input type="text" id="companyName">
+      <label for="stockPrice">Stock Price:</label>
+      <input type="number" id="stockPrice" step="0.01">
+      <button class="button" onclick="setStockPrice()">Set Price</button>
+    </div>
+  </div>
+  <div id="loginSection">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button class="button" onclick="login()">Login</button>
+    <p>Don't have an account? <a href="#" onclick="showRegistration()">Register here</a></p>
+  </div>
+  <div id="registrationSection" style="display: none;">
+    <h2>Registration</h2>
+    <input type="text" id="newUsername" placeholder="Username">
+    <input type="password" id="newPassword" placeholder="Password">
+    <button class="button" onclick="register()">Register</button>
+    <p>Already have an account? <a href="#" onclick="showLogin()">Login here</a></p>
+  </div>
+  <div id="marketSection" style="display: none;">
+    <p>Welcome, <span id="loggedInUser"></span>! Your balance: $<span id="balance">10000</span></p>
+    <p>Current Market Status: <span id="marketStatus">Normal</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Stock</th>
+          <th>Price</th>
+          <th>Change</th>
+          <th>Buy/Sell</th>
+        </tr>
+      </thead>
+      <tbody id="stockTable">
+        <!-- Stocks will be dynamically added here -->
+      </tbody>
+    </table>
+    <h3>Transaction History</h3>
+    <ul id="transactionHistory">
+      <!-- Transaction history will be dynamically added here -->
+    </ul>
+    <button class="button" onclick="saveData()">Save Data</button>
+    <button class="button" onclick="logout()">Logout</button>
+  </div>
+</div>
+<script>
+// Define stocks with initial prices
+let stocks = [
+  { name: 'Apple', price: 150 },
+  { name: 'Google', price: 250 },
+  { name: 'Amazon', price: 3200 },
+  { name: 'Microsoft', price: 300 },
+  { name: 'Reliance', price: 2200 }, // Indian company
+  { name: 'Infosys', price: 1400 }, // Indian company
+  { name: 'TCS', price: 3100 }, // Indian company
+  { name: 'HUL', price: 2300 }, // Indian company - Hindustan Unilever Ltd.
+  { name: 'Nestlé India', price: 16500 }, // Indian company
+  { name: 'Britannia', price: 3900 }, // Indian company - Britannia Industries Ltd.
+  { name: 'Coca-Cola', price: 55 },
+  { name: 'PepsiCo', price: 150 },
+  { name: 'McDonald\'s', price: 240 },
+  { name: 'Starbucks', price: 110 },
+  { name: 'Walmart', price: 140 },
+  { name: 'Tesla', price: 700 },
+  { name: 'Facebook', price: 350 },
+  { name: 'Alphabet', price: 2200 }, // Google's parent company
+  { name: 'IBM', price: 120 }, // International Business Machines Corporation
+];
+
+let loggedInUser = null;
+let userBalance = 10000;
+let transactionHistory = [];
+let userStocks = {}; // Object to track stocks owned by the user
+let marketToggled = false;
+let marketStatusToggled = false;
+let updateInterval; // Variable to store the update interval
+
+// Simulate user authentication
+function login() {
+  const username = document.getElementById('harshit').value;
+  const password = document.getElementById('1234').value;
+  // Simulate authentication (dummy check)
+  if (username === 'user' && password === 'password') {
+    loggedInUser = username;
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('marketSection').style.display = 'block';
+    document.getElementById('loggedInUser').innerText = loggedInUser;
+    updateMarket();
+  } else {
+    alert('Invalid username or password');
+  }
+}
+
+// Show registration section
+function showRegistration() {
+  document.getElementById('loginSection').style.display = 'none';
+  document.getElementById('registrationSection').style.display = 'block';
+}
+
+// Show login section
+function showLogin() {
+  document.getElementById('registrationSection').style.display = 'none';
+  document.getElementById('loginSection').style.display = 'block';
+}
+
+// Simulate user registration
+function register() {
+  const newUsername = document.getElementById('newUsername').value;
+  const newPassword = document.getElementById('newPassword').value;
+  // Simulate registration (dummy check)
+  if (newUsername && newPassword) {
+    loggedInUser = newUsername;
+    document.getElementById('registrationSection').style.display = 'none';
+    document.getElementById('marketSection').style.display = 'block';
+    document.getElementById('loggedInUser').innerText = loggedInUser;
+    updateMarket();
+  } else {
+    alert('Please provide a username and password');
+  }
+}
+
+// Logout
+function logout() {
+// Logout
+function logout() {
+  loggedInUser = null;
+  userBalance = 10000; // Reset user balance on logout
+  userStocks = {}; // Reset user stocks on logout
+  updateUserData(); // Update user data in localStorage
+  document.getElementById('marketSection').style.display = 'none';
+  document.getElementById('loginSection').style.display = 'block';
+  clearInterval(updateInterval); // Stop updating market after logout
+}
+}
+
+// Function to toggle market
+function toggleMarket() {
+  marketToggled = !marketToggled;
+  const marketSettings = document.getElementById('marketSettings');
+  if (marketToggled) {
+    clearInterval(updateInterval);
+    marketSettings.style.display = 'block';
+  } else {
+    updateMarket();
+    marketSettings.style.display = 'none';
+  }
+}
+
+// Function to toggle market status
+function toggleMarketStatus() {
+  marketStatusToggled = !marketStatusToggled;
+  const marketStatus = document.getElementById('marketStatus');
+  if (marketStatusToggled) {
+    marketStatus.style.display = 'none';
+  } else {
+    marketStatus.style.display = 'block';
+  }
+}
+
+// Function to set stock price manually
+function setStockPrice() {
+  const companyName = document.getElementById('companyName').value;
+  const stockPrice = parseFloat(document.getElementById('stockPrice').value);
+  const stock = stocks.find(s => s.name === companyName);
+  if (stock) {
+    if (!isNaN(stockPrice) && stockPrice > 0) {
+      stock.price = stockPrice;
+      updateStockTable();
+    } else {
+      alert('Invalid stock price');
+    }
+  } else {
+    alert('Invalid company name');
+  }
+}
+
+// Function to simulate market fluctuations
+function simulateMarket() {
+  if (!marketToggled && !marketStatusToggled) {
+    stocks.forEach(stock => {
+      // Generate random price change
+      const change = Math.random() * 20 - 10; // Random change between -10 to +10
+      // Shuffle the price randomly
+      const randomMultiplier = Math.random() * 0.5 + 0.75; // Random multiplier between 0.75 to 1.25
+      stock.price *= randomMultiplier;
+      // Apply the random change
+      stock.price += change;
+    });
+  }
+}
+
+// Function to update market and related components
+function updateMarket() {
+  updateInterval = setInterval(() => {
+    simulateMarket();
+    updateStockTable();
+    if (!marketStatusToggled) {
+      updateMarketStatus();
+    }
+  }, 3000); // Update every 3 seconds
+}
+
+// Function to update stock table
+function updateStockTable() {
+  const tableBody = document.getElementById('stockTable');
+  tableBody.innerHTML = '';
+  stocks.forEach(stock => {
+    const change = (Math.round((stock.price - 150) * 100) / 100).toFixed(2);
+    const arrowIcon = change > 0 ? '▲' : change < 0 ? '▼' : ''; // Upward arrow for positive change, downward arrow for negative change
+    const arrowColor = change > 0 ? 'green' : change < 0 ? 'red' : ''; // Green color for positive change, red color for negative change
+    const row = `<tr>
+      <td>${stock.name}</td>
+      <td>$${stock.price.toFixed(2)}</td>
+      <td style="color: ${arrowColor};">${arrowIcon} ${change}</td>
+      <td>
+        <button class="button" onclick="buy('${stock.name}')">Buy</button>
+        <button class="button" onclick="sell('${stock.name}')">Sell</button>
+      </td>
+    </tr>`;
+    tableBody.innerHTML += row;
+  });
+}
+
+// Function to handle buying stocks
+function buy(stockName) {
+  const stock = stocks.find(s => s.name === stockName);
+  const quantityToBuy = parseInt(prompt(`Enter the quantity of ${stockName} to buy`));
+  if (!isNaN(quantityToBuy) && quantityToBuy > 0) {
+    const totalPrice = stock.price * quantityToBuy;
+    if (totalPrice <= userBalance) {
+      userBalance -= totalPrice;
+      if (!userStocks[stockName]) {
+        userStocks[stockName] = quantityToBuy;
+      } else {
+        userStocks[stockName] += quantityToBuy;
+      }
+      transactionHistory.push(`Bought ${quantityToBuy} shares of ${stockName} for $${totalPrice.toFixed(2)}`);
+      updateBalance();
+      updateTransactionHistory();
+      updateUserData(); // Update user data in localStorage
+    } else {
+      alert('Insufficient balance');
+    }
+  } else {
+    alert('Invalid quantity');
+  }
+}
+
+// Function to handle selling stocks
+function sell(stockName) {
+  const stock = stocks.find(s => s.name === stockName);
+  const quantityOwned = userStocks[stockName] || 0; // Get the quantity owned by the user
+  const quantityToSell = parseInt(prompt(`Enter the quantity of ${stockName} to sell (You have ${quantityOwned} shares)`));
+  if (!isNaN(quantityToSell) && quantityToSell > 0 && quantityToSell <= quantityOwned) {
+    const totalEarned = stock.price * quantityToSell;
+    userBalance += totalEarned;
+    userStocks[stockName] -= quantityToSell; // Update the quantity owned by the user
+    transactionHistory.push(`Sold ${quantityToSell} shares of ${stockName} for $${totalEarned.toFixed(2)}`);
+    updateBalance();
+    updateTransactionHistory();
+    updateUserData(); // Update user data in localStorage
+  } else {
+    alert('Invalid quantity or you do not own enough shares to sell');
+  }
+}
+
+// Function to update user balance
+function updateBalance() {
+  document.getElementById('balance').innerText = userBalance.toFixed(2);
+}
+
+// Function to update transaction history
+function updateTransactionHistory() {
+  const historyList = document.getElementById('transactionHistory');
+  historyList.innerHTML = '';
+  transactionHistory.forEach(transaction => {
+    const listItem = document.createElement('li');
+    listItem.textContent = transaction;
+    historyList.appendChild(listItem);
+  });
+}
+
+// Function to update market status based on changes
+function updateMarketStatus() {
+  const marketStatus = document.getElementById('marketStatus');
+  const totalChange = stocks.reduce((acc, stock) => acc + (stock.price - 150), 0);
+  if (totalChange > 0) {
+    marketStatus.innerText = 'Growing';
+    marketStatus.style.color = 'green';
+  } else if (totalChange < 0) {
+    marketStatus.innerText = 'Declining';
+    marketStatus.style.color = 'red';
+  } else {
+    marketStatus.innerText = 'Normal';
+    marketStatus.style.color = 'black';
+  }
+}
+
+// Function to save user data (dummy implementation)
+function saveData() {
+  alert('Data saved successfully!');
+}
+
+// Initial setup
+function initialize() {
+  document.getElementById('loginSection').style.display = 'block';
+  document.getElementById('marketSection').style.display = 'none';
+  // Check if user data exists in localStorage
+  const savedUserData = localStorage.getItem('userData');
+  if (savedUserData) {
+    const userData = JSON.parse(savedUserData);
+    loggedInUser = userData.loggedInUser;
+    userBalance = userData.userBalance;
+    userStocks = userData.userStocks;
+    updateBalance();
+    updateTransactionHistory();
+  }
+}
+
+// Function to update user data in localStorage
+function updateUserData() {
+  const userData = {
+    loggedInUser: loggedInUser,
+    userBalance: userBalance,
+    userStocks: userStocks
+  };
+  localStorage.setItem('userData', JSON.stringify(userData));
+}
+
+initialize();
+</script>
+</body>
+</html>
