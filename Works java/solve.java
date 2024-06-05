@@ -9,7 +9,6 @@ public class solve {
         System.out.print( y );
         System.out.print(" = ");
         System.out.print(z);
-        System.out.print("hello");
-
+        
     }
 }
