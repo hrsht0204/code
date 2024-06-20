@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SBH Banking Network</title>
+    <style>
+        /* Styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #117ad6;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #fafafa;
+            color: #055cde;
+            padding: 20px;
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #ca1515;
+        }
+        .account-info {
+            margin-bottom: 20px;
+        }
+        .account-info p {
+            margin: 5px 0;
+        }
+        .button-container {
+            margin-bottom: 20px;
+        }
+        .button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background-color 0.3s ease;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .transfer-button {
+            background-color: #33cc33;
+            margin-bottom: 10px;
+        }
+        .transfer-button:hover {
+            background-color: #28a745;
+        }
+        .pending-loans, .claimed-loans {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        .claim-button, .pay-button {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #33ff00;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: background-color 0.3s ease;
+        }
+        .claim-button:hover, .pay-button:hover {
+            background-color: #18b300;
+        }
+        .transfer-dialog {
+            display: none;
+            background-color: #fff;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+        }
+        .transfer-dialog input {
+            display: block;
+            margin-bottom: 10px;
+            padding: 10px;
+            width: calc(100% - 24px);
+            box-sizing: border-box;
+        }
+        .transfer-dialog button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 10px;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 500;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>SBH Bank of India</h1>
+        <nav>
+            <ul>
+                <li><a href="Shop.html">Sbh Store</a></li>
+                <li><a href="Stock.html">Stock Hs</a></li>
+            </ul>
+        </nav>
+    </header>
+    <div class="container">
+        <h2>Account Information</h2>
+        <div class="account-info">
+            <p><strong>Name:</strong> <span id="accountName">Harshit K</span></p>
+            <p><strong>Account Number:</strong> <span id="accountNumber">874924002</span></p>
+            <p><strong>Balance:</strong> <span id="balance">5,000</span></p>
+        </div>
+        <div id="accountSelection">
+            <label for="accountSelect">Select Account:</label>
+            <select id="accountSelect" onchange="switchAccount()">
+                <!-- Options will be dynamically populated -->
+            </select>
+        </div>
+        <div id="passwordForm">
+            <input type="password" id="passwordInput" placeholder="Enter your password">
+            <button onclick="authenticate()">Authenticate</button>
+        </div>
+        <div id="authenticatedContent" style="display: none;">
+            <div class="button-container">
+                <button class="button transfer-button" onclick="showTransferMoneyDialog()">Transfer Money</button>
+                <button class="button" onclick="withdraw()">Withdraw</button>
+                <button class="button" onclick="deposit()">Deposit</button>
+                <button class="button" onclick="applyForLoan()">Apply for Loan</button>
+            </div>
+            <div class="pending-loans" id="pendingLoansContainer" style="display: none;">
+                <!-- Pending loan applications will be displayed here -->
+            </div>
+            <div class="claimed-loans" id="claimedLoansContainer" style="display: none;">
+                <!-- Claimed loans will be displayed here -->
+            </div>
+        </div>
+    </div>
+    <!-- Transfer Money Dialog -->
+    <div class="overlay" id="overlay" onclick="closeTransferMoneyDialog()"></div>
+    <div class="transfer-dialog" id="transferDialog">
+        <h3>Transfer Money</h3>
+        <input type="password" id="transferPassword" placeholder="Enter your password">
+        <input type="text" id="recipientAccountNumber" placeholder="Enter recipient's account number">
+        <input type="number" id="transferAmount" placeholder="Enter amount to transfer">
+        <button onclick="transferMoney()">Transfer</button>
+        <button onclick="closeTransferMoneyDialog()">Cancel</button>
+    </div>
+    <script>
+        // Account data structure
+        let accounts = [
+            { name: "Harshit Krishan", accountNumber: "874924002", balance: 5000, password: "Abc@1234", pendingLoans: [], claimedLoans: [] },
+            { name: "Harshit - BA", accountNumber: "300975468", balance: 50000000, password: "Abc@1234", pendingLoans: [], claimedLoans: [] },
+            { name: "Vivek Sharma", accountNumber: "547507816", balance: 5000000, password: "VS@2412", pendingLoans: [], claimedLoans: [] },
+            { name: "Smart Gears - BA", accountNumber: "100708054", balance: 200000000, password: "PM@1234", pendingLoans: [], claimedLoans: [] },
+            { name: "Premimum Mobile - BA", accountNumber: "406113994", balance: 267890000, password: "SG@1234", pendingLoans: [], claimedLoans: [] },
+        ];
+        let selectedAccountIndex = 0;
+
+        // Function to switch account
+        function switchAccount() {
+            selectedAccountIndex = document.getElementById("accountSelect").selectedIndex;
+            loadAccountInfo();
+        }
+
+        // Function to load saved account information
+        window.onload = function () {
+            populateAccountSelection();
+            loadAccountInfo();
+        };
+
+        function populateAccountSelection() {
+            let accountSelect = document.getElementById("accountSelect");
+            accountSelect.innerHTML = "";
+            accounts.forEach((account, index) => {
+                let option = document.createElement("option");
+                option.text = `${account.name} (${account.accountNumber})`;
+                option.value = index;
+                accountSelect.add(option);
+            });
+        }
+
+        function loadAccountInfo() {
+            let account = accounts[selectedAccountIndex];
+            document.getElementById("accountName").textContent = account.name;
+            document.getElementById("accountNumber").textContent = account.accountNumber;
+            updateBalance();
+        }
+
+        function authenticate() {
+            let passwordInput = document.getElementById("passwordInput").value;
+            let account = accounts[selectedAccountIndex];
+            if (passwordInput === account.password) {
+                document.getElementById("passwordForm").style.display = "none";
+                document.getElementById("authenticatedContent").style.display = "block";
+                updatePendingLoansDisplay();
+                updateBalance();
+            } else {
+                alert("Incorrect password. Please try again.");
+            }
+        }
+
+        function withdraw() {
+            if (authenticateTransaction()) {
+                let amount = prompt("Enter amount to withdraw:");
+                if (amount !== null && amount !== "") {
+                    amount = parseFloat(amount);
+                    if (!isNaN(amount) && amount > 0 && amount <= accounts[selectedAccountIndex].balance) {
+                        accounts[selectedAccountIndex].balance -= amount;
+                        updateBalance();
+                        saveAccountsToLocalStorage();
+                    } else {
+                        alert("Invalid or insufficient amount.");
+                    }
+                }
+            }
+        }
+
+        function deposit() {
+            if (authenticateTransaction()) {
+                let amount = prompt("Enter amount to deposit:");
+                if (amount !== null && amount !== "") {
+                    amount = parseFloat(amount);
+                    if (!isNaN(amount) && amount > 0) {
+                        accounts[selectedAccountIndex].balance += amount;
+                        updateBalance();
+                        saveAccountsToLocalStorage();
+                    } else {
+                        alert("Invalid amount.");
+                    }
+                }
+            }
+        }
+
+        function authenticateTransaction() {
+            let passwordInput = prompt("Enter your password to confirm the transaction:");
+            if (passwordInput === accounts[selectedAccountIndex].password) {
+                return true;
+            } else {
+                alert("Incorrect password. Transaction cancelled.");
+                return false;
+            }
+        }
+
+        function updateBalance() {
+            let balance = accounts[selectedAccountIndex].balance.toLocaleString('en-IN', {
+                maximumFractionDigits: 2,
+                style: 'currency',
+                currency: 'INR'
+            });
+            document.getElementById("balance").textContent = balance;
+        }
+
+        function applyForLoan() {
+            let amount = parseFloat(prompt("Enter loan amount:"));
+            if (!isNaN(amount) && amount > 0) {
+                accounts[selectedAccountIndex].pendingLoans.push({ amount: amount, status: "Pending" });
+                saveAccountsToLocalStorage();
+                updatePendingLoansDisplay();
+            } else {
+                alert("Invalid amount.");
+            }
+        }
+
+        function claimLoan(index) {
+            accounts[selectedAccountIndex].claimedLoans.push(accounts[selectedAccountIndex].pendingLoans[index]);
+            accounts[selectedAccountIndex].pendingLoans.splice(index, 1);
+            saveAccountsToLocalStorage();
+            updatePendingLoansDisplay();
+        }
+
+        function payLoan(index) {
+            let loan = accounts[selectedAccountIndex].claimedLoans[index];
+            if (loan.amount <= accounts[selectedAccountIndex].balance) {
+                accounts[selectedAccountIndex].balance -= loan.amount;
+                accounts[selectedAccountIndex].claimedLoans.splice(index, 1);
+                saveAccountsToLocalStorage();
+                updatePendingLoansDisplay();
+                updateBalance();
+            } else {
+                alert("Insufficient balance to pay the loan.");
+            }
+        }
+
+        function updatePendingLoansDisplay() {
+            let pendingLoansContainer = document.getElementById("pendingLoansContainer");
+            let claimedLoansContainer = document.getElementById("claimedLoansContainer");
+
+            if (accounts[selectedAccountIndex].pendingLoans.length > 0) {
+                pendingLoansContainer.innerHTML = "<h3>Pending Loans</h3>";
+                accounts[selectedAccountIndex].pendingLoans.forEach((loan, index) => {
+                    let loanElement = document.createElement("div");
+                    loanElement.innerHTML = `Amount: ₹${loan.amount.toLocaleString('en-IN', {
+                        maximumFractionDigits: 2
+                    })} <button class="claim-button" onclick="claimLoan(${index})">Claim</button>`;
+                    pendingLoansContainer.appendChild(loanElement);
+                });
+            } else {
+                pendingLoansContainer.innerHTML = "<p>No pending loans.</p>";
+            }
+
+            if (accounts[selectedAccountIndex].claimedLoans.length > 0) {
+                claimedLoansContainer.innerHTML = "<h3>Claimed Loans</h3>";
+                accounts[selectedAccountIndex].claimedLoans.forEach((loan, index) => {
+                    let loanElement = document.createElement("div");
+                    loanElement.innerHTML = `Amount: ₹${loan.amount.toLocaleString('en-IN', {
+                        maximumFractionDigits: 2
+                    })} <button class="pay-button" onclick="payLoan(${index})">Pay</button>`;
+                    claimedLoansContainer.appendChild(loanElement);
+                });
+            } else {
+                claimedLoansContainer.innerHTML = "<p>No claimed loans.</p>";
+            }
+        }
+
+        function showTransferMoneyDialog() {
+            document.getElementById("overlay").style.display = "block";
+            document.getElementById("transferDialog").style.display = "block";
+        }
+
+        function closeTransferMoneyDialog() {
+            document.getElementById("overlay").style.display = "none";
+            document.getElementById("transferDialog").style.display = "none";
+        }
+
+        function transferMoney() {
+            let transferPassword = document.getElementById("transferPassword").value;
+            let recipientAccountNumber = document.getElementById("recipientAccountNumber").value;
+            let transferAmount = parseFloat(document.getElementById("transferAmount").value);
+
+            // Check if transfer password matches
+            if (transferPassword !== accounts[selectedAccountIndex].password) {
+                alert("Incorrect transfer password. Transaction aborted.");
+                return;
+            }
+
+            // Check if recipient account exists
+            let recipientAccount = accounts.find(acc => acc.accountNumber === recipientAccountNumber);
+            if (!recipientAccount) {
+                alert("Recipient account does not exist. Transaction aborted.");
+                return;
+            }
+
+            // Check if transfer amount is valid
+            if (isNaN(transferAmount) || transferAmount <= 0) {
+                alert("Invalid transfer amount. Please enter a valid amount.");
+                return;
+            }
+
+            // Check if the sender has sufficient balance
+            if (transferAmount > accounts[selectedAccountIndex].balance) {
+                alert("Insufficient balance. Transaction aborted.");
+                return;
+            }
+
+            // Perform the transfer
+            accounts[selectedAccountIndex].balance -= transferAmount;
+            recipientAccount.balance += transferAmount;
+            updateBalance();
+            alert(`₹${transferAmount} transferred successfully to account ${recipientAccountNumber}!`);
+            saveAccountsToLocalStorage();
+            closeTransferMoneyDialog();
+        }
+
+        function saveAccountsToLocalStorage() {
+            localStorage.setItem('accounts', JSON.stringify(accounts));
+        }
+    </script>
+</body>
+</html>
+
