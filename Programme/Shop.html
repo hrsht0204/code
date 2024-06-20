@@ -2,65 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Company Products</title>
+    <title>Ultimate Shopping Website</title>
     <style>
-        /* Some basic CSS for styling */
+        /* General styles */
         body {
             font-family: Arial, sans-serif;
+            color: black;
+            background-color: white;
             margin: 0;
             padding: 0;
         }
-        header {
-            background-color: #333;
-            color: #fff;
-            padding: 10px 0;
-            text-align: center;
-        }
-        nav {
-            background-color: #444;
-            padding: 10px 0;
-            text-align: center;
-        }
-        nav a {
-            color: #fff;
-            text-decoration: none;
-            padding: 0 15px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 0 20px;
-        }
-        #products {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-        .product {
-            border: 1px solid #ccc;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-        }
-        .product img {
-            max-width: 100%;
-            border-radius: 5px;
-        }
-        .product h3 {
-            margin-top: 10px;
-            font-size: 18px;
-        }
-        .product p {
-            font-size: 16px;
-            margin: 10px 0;
-        }
+        /* Top bar styles */
         #topBar {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             padding: 20px;
             background-color: #f1f1f1;
-            margin-bottom: 20px;
         }
         #accountInfo {
             display: flex;
@@ -76,9 +34,18 @@
         #addMoneyForm input {
             margin-right: 10px;
         }
+        #cartSection {
+            display: flex;
+            align-items: center;
+        }
+        #cartSection label {
+            margin-right: 10px;
+        }
+        /* Company dropdown styles */
         #companyDropdown {
             margin-bottom: 20px;
         }
+        /* Product catalog styles */
         .product {
             border: 1px solid #ddd;
             padding: 10px;
@@ -88,28 +55,24 @@
             max-width: 100px;
             display: block;
         }
+        /* Checkout button styles */
+        #checkoutButton {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #checkoutButton:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Company Products</h1>
-    </header>
-    <nav>
-        <a href="#" onclick="showCompanyProducts('Apple')">Apple</a>
-        <a href="#" onclick="showCompanyProducts('Samsung')">Samsung</a>
-        <a href="#" onclick="showCompanyProducts('Google')">Google</a>
-        <a href="#" onclick="showCompanyProducts('Sony')">Sony</a>
-        <a href="#" onclick="showCompanyProducts('Dell')">Dell</a>
-        <a href="#" onclick="showCompanyProducts('Asus')">Asus</a>
-        <a href="#" onclick="showCompanyProducts('Redmi')">Redmi</a>
-    </nav>
-    <div class="container">
-        <div id="products">
-            <h2>Items:</h2>
-            <!-- Products will be displayed here -->
-        </div>
-    </div>
+    <!-- Top bar section -->
     <div id="topBar">
+        <!-- Account information and balance -->
         <div id="accountInfo">
             <span id="balance">Balance: ₹0</span>
             <div id="addMoneyForm">
@@ -117,7 +80,15 @@
                 <button onclick="addMoney()">Add Money</button>
             </div>
         </div>
+        <!-- Shopping cart section -->
+        <div id="cartSection">
+            <label for="cartDropdown">Shopping Cart:</label>
+            <select id="cartDropdown"></select>
+            <button id="checkoutButton" onclick="checkout()">Checkout</button>
+        </div>
     </div>
+
+    <!-- Company dropdown section -->
     <div>
         <label for="companyDropdown">Select a company:</label>
         <select id="companyDropdown" onchange="showProducts()">
@@ -128,21 +99,43 @@
             <option value="Samsung">Samsung</option>
             <option value="Asus">Asus</option>
             <option value="Redmi">Redmi</option>
+            <option value="Dell">Dell</option>
         </select>
     </div>
 
+    <!-- Product catalog section -->
     <div id="productContainer"></div>
 
+    <!-- JavaScript code -->
     <script>
-        function showCompanyProducts(company) {
-            // Clear previous products
-            const productsSection = document.getElementById("products");
-            productsSection.innerHTML = "<h2>Items:</h2>";
+        // Initialize balance
+        let balance = 0;
 
-            // Fetch products based on company and display them
+        // Update balance display
+        function updateBalanceDisplay() {
+            document.getElementById("balance").textContent = `Balance: ₹${balance}`;
+        }
+
+        // Add money to account
+        function addMoney() {
+            const amount = parseInt(document.getElementById("addMoneyAmount").value);
+            if (!isNaN(amount) && amount > 0) {
+                balance += amount;
+                updateBalanceDisplay();
+                document.getElementById("addMoneyAmount").value = '';
+            } else {
+                alert("Please enter a valid amount.");
+            }
+        }
+
+        // Show products for selected company
+        function showProducts() {
+            const company = document.getElementById("companyDropdown").value;
+            let products = [];
+
             if (company === "Apple") {
-                const appleProducts = [
-                    { name: "iPhone 15", price: 149999, image: "iphone15.jpg" },
+                products = [
+                { name: "iPhone 15", price: 149999, image: "iphone15.jpg" },
                     { name: "MacBook Pro 2024", price: 199999, image: "macbookpro.jpg" },
                     { name: "iPad Pro", price: 79999, image: "ipadpro.jpg" },
                     { name: "AirPods Pro", price: 24999, image: "airpodspro.jpg" },
@@ -164,10 +157,9 @@
                     { name: "Apple Watch SE", price: 29999, image: "applewatchse.jpg" },
                     { name: "Apple iPod Touch", price: 19999, image: "ipodtouch.jpg" }
                 ];
-                displayProducts(appleProducts);
             } else if (company === "Samsung") {
-                const samsungProducts = [
-                    { name: "Samsung Galaxy S22", price: 139999, image: "s22.jpg" },
+                products = [
+                { name: "Samsung Galaxy S22", price: 139999, image: "s22.jpg" },
                     { name: "Samsung Galaxy Watch 4", price: 19999, image: "galaxywatch4.jpg" },
                     { name: "Samsung Odyssey G9 Monitor", price: 149999, image: "odysseyg9.jpg" },
                     { name: "Samsung Galaxy Buds Pro", price: 15999, image: "galaxybudspro.jpg" },
@@ -189,209 +181,157 @@
                     { name: "Samsung The Frame TV", price: 139999, image: "theframe.jpg" },
                     { name: "Samsung Galaxy S21 FE", price: 71999, image: "s21fe.jpg" }
                 ];
-                displayProducts(samsungProducts);
             } else if (company === "Google") {
-                const googleProducts = [
-                    { name: "Google Pixel 6 Pro", price: 89999, image: "pixel6pro.jpg" },
+                products = [
+                { name: "Google Pixel 6 Pro", price: 89999, image: "pixel6pro.jpg" },
                     { name: "Google Nest Hub", price: 9999, image: "nesthub.jpg" },
                     { name: "Google Pixelbook Go", price: 84999, image: "pixelbookgo.jpg" },
                     { name: "Google Pixel Stand", price: 6999, image: "pixelstand.jpg" },
                     { name: "Google Pixel Buds A-Series", price: 9999, image: "pixelbudsaseries.jpg" },
                     { name: "Google Nest Audio", price: 7999, image: "nestaudio.jpg" },
                     { name: "Google Pixel 6", price: 59999, image: "pixel6.jpg" },
-                    { name: "Google Chromecast with Google TV", price: 5499, image: "chromecast.jpg" },
-                    { name: "Google Wifi", price: 9999, image: "googlewifi.jpg" },
-                    { name: "Google Pixelbook", price: 122999, image: "pixelbook.jpg" },
+                    { name: "Google Chromecast with Google TV", price: 6999, image: "chromecast.jpg" },
+                    { name: "Google Nest Thermostat", price: 24999, image: "nestthermostat.jpg" },
+                    { name: "Google Nest Doorbell", price: 14999, image: "nestdoorbell.jpg" },
                     // Add 10 more products
-                    { name: "Google Pixel 5a", price: 45999, image: "pixel5a.jpg" },
-                    { name: "Google Pixelbook Pro", price: 149999, image: "pixelbookpro.jpg" },
-                    { name: "Google Nest Cam Indoor", price: 7999, image: "nestcamindoor.jpg" },
-                    { name: "Google Pixel Slate", price: 109999, image: "pixelslate.jpg" },
-                    { name: "Google Nest Thermostat", price: 9999, image: "nestthermostat.jpg" },
-                    { name: "Google Pixel 4a", price: 31999, image: "pixel4a.jpg" },
-                    { name: "Google Nest Hello Video Doorbell", price: 22999, image: "nesthello.jpg" },
-                    { name: "Google Nest Protect", price: 11999, image: "nestprotect.jpg" },
-                    { name: "Google Pixelbook C", price: 129999, image: "pixelbookc.jpg" },
-                    { name: "Google Nest Wifi", price: 14999, image: "nestwifi.jpg" }
+                    { name: "Google Pixel 5a", price: 42999, image: "pixel5a.jpg" },
+                    { name: "Google Nest Wifi Router", price: 14999, image: "nestwifi.jpg" },
+                    { name: "Google Nest Cam Indoor", price: 11999, image: "nestcamindoor.jpg" },
+                    { name: "Google Nest Cam Outdoor", price: 17999, image: "nestcamoutdoor.jpg" },
+                    { name: "Google Pixel Slate", price: 84999, image: "pixelslate.jpg" },
+                    { name: "Google Daydream View VR Headset", price: 9999, image: "daydreamview.jpg" },
+                    { name: "Google Stadia Controller", price: 6999, image: "stadiacontroller.jpg" },
+                    { name: "Google Pixelbook Pen", price: 4999, image: "pixelbookpen.jpg" },
+                    { name: "Google Nest Secure Alarm System", price: 44999, image: "nestsecure.jpg" },
+                    { name: "Google Pixel 4a", price: 31999, image: "pixel4a.jpg" }
                 ];
-                displayProducts(googleProducts);
             } else if (company === "Sony") {
-                const sonyProducts = [
-                    { name: "Sony PlayStation 5", price: 49999, image: "ps5.jpg" },
+                products = [
+                { name: "Sony PlayStation 5", price: 49999, image: "ps5.jpg" },
                     { name: "Sony WH-1000XM4 Headphones", price: 29999, image: "wh1000xm4.jpg" },
-                    { name: "Sony Bravia XR A90J 65-inch TV", price: 449999, image: "a90j.jpg" },
-                    { name: "Sony Xperia 1 III", price: 109999, image: "xperia1iii.jpg" },
-                    { name: "Sony Alpha 7 IV", price: 239999, image: "alpha7iv.jpg" },
-                    { name: "Sony WF-1000XM4 Earbuds", price: 24999, image: "wf1000xm4.jpg" },
-                    { name: "Sony SRS-XB43 Bluetooth Speaker", price: 16990, image: "srsxb43.jpg" },
-                    { name: "Sony KD-65X80J 65-inch TV", price: 129999, image: "x80j.jpg" },
-                    { name: "Sony Xperia 5 III", price: 95999, image: "xperia5iii.jpg" },
-                    { name: "Sony WH-XB900N Headphones", price: 16999, image: "whxb900n.jpg" },
-                    // Add 10 more products
+                    { name: "Sony A7 III Camera", price: 149999, image: "a7iii.jpg" },
+                    { name: "Sony Bravia 55-inch OLED TV", price: 119999, image: "bravia55.jpg" },
+                    { name: "Sony Xperia 1 III", price: 84999, image: "xperia1iii.jpg" },
+                    { name: "Sony SRS-XB43 Bluetooth Speaker", price: 14999, image: "srsxb43.jpg" },
+                    { name: "Sony WF-1000XM4 Earbuds", price: 19999, image: "wf1000xm4.jpg" },
                     { name: "Sony PlayStation VR", price: 29999, image: "psvr.jpg" },
-                    { name: "Sony Xperia Pro", price: 139999, image: "xperiapro.jpg" },
-                    { name: "Sony SRS-XB23 Portable Bluetooth Speaker", price: 8999, image: "srsxb23.jpg" },
-                    { name: "Sony MDR-ZX110NC Noise Cancelling Headphones", price: 2499, image: "mdrzx110nc.jpg" },
-                    { name: "Sony HT-Z9F Soundbar", price: 59999, image: "htz9f.jpg" },
-                    { name: "Sony WF-SP800N True Wireless Sports Earbuds", price: 18999, image: "wfsp800n.jpg" },
-                    { name: "Sony X950H 4K Ultra HD Smart LED TV", price: 229999, image: "x950h.jpg" },
-                    { name: "Sony GTK-XB90 High Power Portable Party Speaker", price: 34999, image: "gtkxb90.jpg" },
-                    { name: "Sony WH-CH710N Wireless Noise Cancelling Headphones", price: 12999, image: "whch710n.jpg" },
-                    { name: "Sony X90J 4K Ultra HD Smart LED TV", price: 119999, image: "x90j.jpg" }
-                ];
-                displayProducts(sonyProducts);
-            } else if (company === "Dell") {
-                const dellProducts = [
-                    { name: "Dell XPS 15", price: 169999, image: "dellxps15.jpg" },
-                    { name: "Dell Alienware Area-51M", price: 299999, image: "alienwarearea51m.jpg" },
-                    { name: "Dell G15 Gaming Laptop", price: 99999, image: "dellg15.jpg" },
-                    { name: "Dell Inspiron 14 2-in-1", price: 72999, image: "dellinspiron14.jpg" },
-                    { name: "Dell Ultrasharp 27 4K Monitor", price: 78999, image: "dellultrasharp27.jpg" },
-                    { name: "Dell Latitude 9520", price: 124999, image: "latitude9520.jpg" },
-                    { name: "Dell Precision 5760 Workstation", price: 222999, image: "precision5760.jpg" },
-                    { name: "Dell XPS 13 2-in-1", price: 144999, image: "xps132in1.jpg" },
-                    { name: "Alienware m15 R6", price: 199999, image: "alienwarem15r6.jpg" },
-                    { name: "Dell Inspiron 15 3000", price: 36999, image: "dellinspiron15.jpg" },
+                    { name: "Sony Alpha 6600 Camera", price: 99999, image: "alpha6600.jpg" },
+                    { name: "Sony HT-G700 Soundbar", price: 39999, image: "htg700.jpg" },
                     // Add 10 more products
-                    { name: "Dell XPS 17", price: 234999, image: "dellxps17.jpg" },
-                    { name: "Dell Alienware m17 R4", price: 324999, image: "alienwarem17r4.jpg" },
-                    { name: "Dell Inspiron 15 7000", price: 74999, image: "dellinspiron157000.jpg" },
-                    { name: "Dell UltraSharp 32 4K USB-C Monitor", price: 114999, image: "ultrasharp324k.jpg" },
-                    { name: "Dell Alienware Aurora R12", price: 239999, image: "aurorar12.jpg" },
-                    { name: "Dell Inspiron 27 7000", price: 114999, image: "inspiron277000.jpg" },
-                    { name: "Dell XPS 13 Developer Edition", price: 154999, image: "xps13developer.jpg" },
-                    { name: "Dell G5 Gaming Desktop", price: 89999, image: "dellg5gamingdesktop.jpg" },
-                    { name: "Dell S2721DGF Gaming Monitor", price: 69999, image: "s2721dgf.jpg" },
-                    { name: "Dell Vostro 14 3000", price: 47999, image: "vostro143000.jpg" }
+                    { name: "Sony Walkman NW-A55", price: 18999, image: "nwa55.jpg" },
+                    { name: "Sony Xperia 5 II", price: 74999, image: "xperia5ii.jpg" },
+                    { name: "Sony X900H 65-inch TV", price: 99999, image: "x900h.jpg" },
+                    { name: "Sony A8H 65-inch OLED TV", price: 149999, image: "a8h.jpg" },
+                    { name: "Sony ZV-1 Camera", price: 64999, image: "zv1.jpg" },
+                    { name: "Sony WH-CH710N Headphones", price: 7999, image: "whch710n.jpg" },
+                    { name: "Sony SRS-XB33 Bluetooth Speaker", price: 12999, image: "srsxb33.jpg" },
+                    { name: "Sony Alpha 1 Camera", price: 499999, image: "alpha1.jpg" },
+                    { name: "Sony HT-ST5000 Soundbar", price: 99999, image: "htst5000.jpg" },
+                    { name: "Sony X800H 55-inch TV", price: 69999, image: "x800h.jpg" }
                 ];
-                displayProducts(dellProducts);
             } else if (company === "Asus") {
-                const asusProducts = [
-                    { name: "Asus ROG Strix Scar 15", price: 179999, image: "rogscar15.jpg" },
+                products = [
+                { name: "Asus ROG Zephyrus G14", price: 129999, image: "zephyrusg14.jpg" },
                     { name: "Asus ZenBook Duo 14", price: 99999, image: "zenbookduo14.jpg" },
-                    { name: "Asus ROG Phone 5", price: 49999, image: "rogphone5.jpg" },
+                    { name: "Asus ROG Strix Scar 15", price: 159999, image: "strixscar15.jpg" },
                     { name: "Asus TUF Gaming A15", price: 79999, image: "tufgaminga15.jpg" },
-                    { name: "Asus Vivobook 14", price: 54999, image: "vivobook14.jpg" },
-                    { name: "Asus ZenBook Pro Duo", price: 249999, image: "zenbookproduo.jpg" },
-                    { name: "Asus ROG Zephyrus G14", price: 129999, image: "rogzephyrusg14.jpg" },
-                    { name: "Asus VivoBook Ultra K14", price: 50999, image: "vivobookultrak14.jpg" },
-                    { name: "Asus TUF Dash F15", price: 89999, image: "tufdashf15.jpg" },
-                    { name: "Asus ZenBook Flip 13", price: 124999, image: "zenbookflip13.jpg" },
+                    { name: "Asus VivoBook S14", price: 59999, image: "vivobooks14.jpg" },
+                    { name: "Asus ROG Phone 5", price: 69999, image: "rogphone5.jpg" },
+                    { name: "Asus ProArt StudioBook", price: 199999, image: "studiobook.jpg" },
+                    { name: "Asus Chromebook Flip", price: 49999, image: "chromebookflip.jpg" },
+                    { name: "Asus Zenfone 8", price: 54999, image: "zenfone8.jpg" },
+                    { name: "Asus ROG Swift Monitor", price: 89999, image: "rogswift.jpg" },
                     // Add 10 more products
-                    { name: "Asus ROG Strix G15", price: 94999, image: "rogstrixg15.jpg" },
-                    { name: "Asus ROG Zephyrus Duo 15 SE", price: 299999, image: "rogzephyrusduo15se.jpg" },
-                    { name: "Asus VivoBook S14", price: 69999, image: "vivobooks14.jpg" },
-                    { name: "Asus ZenFone 8", price: 59999, image: "zenfone8.jpg" },
-                    { name: "Asus ROG Swift PG259QN Gaming Monitor", price: 69999, image: "rogswiftpg259qn.jpg" },
-                    { name: "Asus ROG Phone 5s", price: 57999, image: "rogphone5s.jpg" },
-                    { name: "Asus TUF Gaming F15", price: 79999, image: "tufgamingf15.jpg" },
-                    { name: "Asus ZenBook Flip 15", price: 129999, image: "zenbookflip15.jpg" },
-                    { name: "Asus ZenBook 14", price: 79999, image: "zenbook14.jpg" },
-                    { name: "Asus VivoBook Pro 14", price: 64999, image: "vivobookpro14.jpg" }
+                    { name: "Asus TUF Dash F15", price: 95999, image: "tufdashf15.jpg" },
+                    { name: "Asus ExpertBook B9", price: 149999, image: "expertbookb9.jpg" },
+                    { name: "Asus ROG Strix G17", price: 129999, image: "strixg17.jpg" },
+                    { name: "Asus ZenBook Flip 13", price: 79999, image: "zenbookflip13.jpg" },
+                    { name: "Asus ROG Crosshair VIII Hero", price: 39999, image: "crosshairviii.jpg" },
+                    { name: "Asus ZenWiFi AX (XT8)", price: 24999, image: "zenwifiax.jpg" },
+                    { name: "Asus ROG Strix Scope RX Keyboard", price: 9999, image: "strixscoperx.jpg" },
+                    { name: "Asus ROG Chakram Core Mouse", price: 6999, image: "chakramcore.jpg" },
+                    { name: "Asus ZenScreen Portable Monitor", price: 25999, image: "zenscreen.jpg" },
+                    { name: "Asus TUF Gaming VG27AQL1A Monitor", price: 49999, image: "tufvg27.jpg" }
                 ];
-                displayProducts(asusProducts);
             } else if (company === "Redmi") {
-                const redmiProducts = [
-                    { name: "Redmi Note 11 Pro", price: 19999, image: "note11pro.jpg" },
-                    { name: "RedmiBook Pro 14", price: 59999, image: "redmibookpro14.jpg" },
-                    { name: "Redmi K40 Gaming Edition", price: 27999, image: "redmik40gaming.jpg" },
-                    { name: "Redmi Smart TV X65", price: 62999, image: "redmismarttvx65.jpg" },
-                    { name: "Redmi Note 10S", price: 15999, image: "note10s.jpg" },
-                    { name: "Redmi 10 Prime", price: 13999, image: "redmi10prime.jpg" },
-                    { name: "Redmi Smart Band", price: 2499, image: "redmismartband.jpg" },
-                    { name: "Redmi 10X 5G", price: 19999, image: "redmi10x5g.jpg" },
-                    { name: "Redmi Earbuds 3 Pro", price: 2999, image: "redmiearbuds3pro.jpg" },
-                    { name: "Redmi 9A", price: 8499, image: "redmi9a.jpg" },
+                products = [
+                { name: "Redmi Note 11 Pro", price: 18999, image: "note11pro.jpg" },
+                    { name: "Redmi K40", price: 24999, image: "k40.jpg" },
+                    { name: "Redmi 10X Pro", price: 17999, image: "10xpro.jpg" },
+                    { name: "Redmi Smart Band Pro", price: 3999, image: "smartbandpro.jpg" },
+                    { name: "Redmi Note 10S", price: 14999, image: "note10s.jpg" },
+                    { name: "Redmi 9 Power", price: 11999, image: "9power.jpg" },
+                    { name: "RedmiBook Pro 15", price: 54999, image: "bookpro15.jpg" },
+                    { name: "Redmi Airdots 3", price: 2999, image: "airdots3.jpg" },
+                    { name: "Redmi Smart TV X55", price: 39999, image: "smarttvx55.jpg" },
+                    { name: "Redmi 10 Prime", price: 12999, image: "10prime.jpg" },
                     // Add 10 more products
-                    { name: "Redmi 10", price: 12499, image: "redmi10.jpg" },
-                    { name: "Redmi 10X Pro", price: 24999, image: "redmi10xpro.jpg" },
-                    { name: "Redmi Note 11", price: 14999, image: "note11.jpg" },
-                    { name: "Redmi Watch 2", price: 4499, image: "redmiwatch2.jpg" },
-                    { name: "Redmi K30S Ultra", price: 31999, image: "k30sultra.jpg" },
-                    { name: "Redmi K30 Ultra", price: 29999, image: "k30ultra.jpg" },
-                    { name: "Redmi 9C", price: 7499, image: "redmi9c.jpg" },
-                    { name: "Redmi Note 10", price: 13999, image: "note10.jpg" },
-                    { name: "Redmi AirDots 3 Pro", price: 3999, image: "redmiairdots3pro.jpg" },
-                    { name: "Redmi K30 Pro", price: 29999, image: "k30pro.jpg" }
+                    { name: "Redmi K30 Pro", price: 27999, image: "k30pro.jpg" },
+                    { name: "Redmi Note 8", price: 9999, image: "note8.jpg" },
+                    { name: "Redmi G Gaming Laptop", price: 65999, image: "ggaming.jpg" },
+                    { name: "Redmi Watch 2", price: 4999, image: "watch2.jpg" },
+                    { name: "Redmi Smart TV Max 98", price: 199999, image: "tvmax98.jpg" },
+                    { name: "Redmi AX6 Router", price: 5999, image: "ax6router.jpg" },
+                    { name: "Redmi SonicBass Wireless Earphones", price: 999, image: "sonicbass.jpg" },
+                    { name: "Redmi Note 9", price: 11999, image: "note9.jpg" },
+                    { name: "Redmi K40 Gaming Edition", price: 28999, image: "k40gaming.jpg"                    },
+                    { name: "RedmiBook Air 13", price: 49999, image: "bookair13.jpg" },
+                    { name: "Redmi Smart Band 6", price: 3499, image: "smartband6.jpg" }
                 ];
-                displayProducts(redmiProducts);
             }
+            // Add more company product data here
+
+            displayProducts(products);
         }
 
-        function displayProducts(products) {
-            const productsSection = document.getElementById("products");
-            products.forEach(product => {
-                const productDiv = document.createElement("div");
-                productDiv.classList.add("product");
-                productDiv.innerHTML = `
-                    <img src="${product.image}" alt="${product.name}">
-                    <h3>${product.name}</h3>
-                    <p>$${product.price}</p>
-                    <button onclick="addToCart('${product.name}', ${product.price})">Add to Cart</button>
-                `;
-                productsSection.appendChild(productDiv);
-            });
+        // Add product to shopping cart
+        function addToCart(productName, productPrice) {
+            const cartDropdown = document.getElementById("cartDropdown");
+            const option = document.createElement("option");
+            option.text = `${productName} - ₹${productPrice}`;
+            cartDropdown.add(option);
         }
 
-        let cartItems = [];
-        let total = 0;
-        let accountBalance = 800000;
-
-        function addToCart(name, price) {
-            cartItems.push({ name: name, price: price });
-            total += price;
-            updateCart();
-        }
-
-        function updateCart() {
-            const cartElement = document.getElementById("cart-items");
-            cartElement.innerHTML = "";
-            cartItems.forEach(item => {
-                const li = document.createElement("li");
-                li.textContent = `${item.name} - $${item.price.toFixed(2)}`;
-                cartElement.appendChild(li);
-            });
-            document.getElementById("cart-total").textContent = `$${total.toFixed(2)}`;
-        }
-
+        // Checkout
         function checkout() {
-            if (accountBalance < total) {
-                alert("Insufficient balance. Please add more money to your account.");
-                return;
-            }
-            alert("Thank you for your purchase!");
-            accountBalance -= total;
-            updateAccountBalance();
-            updateBuyList();
-            cartItems = [];
-            total = 0;
-            updateCart();
+            alert("Thank you for shopping with us! Your order has been placed.");
+            // Clear shopping cart
+            document.getElementById("cartDropdown").innerHTML = "";
         }
 
-        function addMoney() {
-            const amount = parseFloat(document.getElementById("add-money-amount").value);
-            if (amount) {
-                accountBalance += amount;
-                updateAccountBalance();
-                document.getElementById("add-money-amount").value = "";
-            } else {
-                alert("Please enter a valid amount.");
-            }
+        // Display products in the product container
+        function displayProducts(products) {
+            const productContainer = document.getElementById("productContainer");
+            productContainer.innerHTML = ""; // Clear previous products
+
+            products.forEach(product => {
+                const productElement = document.createElement("div");
+                productElement.className = "product";
+
+                const productImage = document.createElement("img");
+                productImage.src = `images/${product.image}`;
+                productImage.alt = product.name;
+
+                const productName = document.createElement("h3");
+                productName.textContent = product.name;
+
+                const productPrice = document.createElement("p");
+                productPrice.textContent = `Price: ₹${product.price}`;
+
+                const addToCartButton = document.createElement("button");
+                addToCartButton.textContent = "Add to Cart";
+                addToCartButton.onclick = function() {
+                    addToCart(product.name, product.price);
+                };
+
+                productElement.appendChild(productImage);
+                productElement.appendChild(productName);
+                productElement.appendChild(productPrice);
+                productElement.appendChild(addToCartButton);
+
+                productContainer.appendChild(productElement);
+            });
         }
-
-        function updateAccountBalance() {
-    document.getElementById("account-balance").textContent = `$${accountBalance.toFixed(2)}`;
-}
-
-function updateBuyList() {
-    document.getElementById("buy-list").textContent = `$${accountBalance.toFixed(2)}`;
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    updateAccountBalance();
-    updateBuyList();
-});
     </script>
 </body>
 </html>
-
