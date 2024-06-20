@@ -168,6 +168,23 @@
         <button onclick="transferMoney()">Transfer</button>
         <button onclick="closeTransferMoneyDialog()">Cancel</button>
     </div>
+
+    <!-- Add New Account Form -->
+    <div class="container">
+        <form id="addAccountForm">
+            <h2>Add New Account</h2>
+            <label for="newName">Name:</label>
+            <input type="text" id="newName" required><br>
+            <label for="newAccountNumber">Account Number:</label>
+            <input type="text" id="newAccountNumber" required><br>
+            <label for="newBalance">Balance:</label>
+            <input type="number" id="newBalance" required><br>
+            <label for="newPassword">Password:</label>
+            <input type="password" id="newPassword" required><br>
+            <button type="submit">Add Account</button>
+        </form>
+    </div>
+
     <script>
         // Account data structure
         let accounts = [
@@ -176,6 +193,7 @@
             { name: "Vivek Sharma", accountNumber: "547507816", balance: 5000000, password: "VS@2412", pendingLoans: [], claimedLoans: [] },
             { name: "Smart Gears - BA", accountNumber: "100708054", balance: 200000000, password: "PM@1234", pendingLoans: [], claimedLoans: [] },
             { name: "Premimum Mobile - BA", accountNumber: "406113994", balance: 267890000, password: "SG@1234", pendingLoans: [], claimedLoans: [] },
+            { name: "Youtube - BA", accountNumber: "010203040", balance: 10000000, password: "Youtube@india", pendingLoans: [], claimedLoans: [] },
         ];
         let selectedAccountIndex = 0;
 
@@ -191,16 +209,72 @@
             loadAccountInfo();
         };
 
-        function populateAccountSelection() {
-            let accountSelect = document.getElementById("accountSelect");
-            accountSelect.innerHTML = "";
-            accounts.forEach((account, index) => {
-                let option = document.createElement("option");
-                option.text = `${account.name} (${account.accountNumber})`;
-                option.value = index;
-                accountSelect.add(option);
-            });
+        // Add this event listener to handle form submission
+        document.getElementById("addAccountForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent form submission
+            let newName = document.getElementById("newName").value;
+            let newAccountNumber = document.getElementById("newAccountNumber").value;
+            let newBalance = parseFloat(document.getElementById("newBalance").value);
+            let newPassword = document.getElementById("newPassword").value;
+
+            // Create a new account object
+            let newAccount = {
+                name: newName,
+                accountNumber: newAccountNumber,
+                balance: newBalance,
+                password: newPassword,
+                pendingLoans: [],
+                claimedLoans: []
+            };
+
+            addNewAccount(newAccount); // Call the function to add the new account
+        });
+
+        // Function to add a new account
+        function addNewAccount(account) {
+            accounts.push(account);
+            saveAccountsToLocalStorage(); // Save the updated accounts to localStorage
+            populateAccountSelection(); // Update the dropdown menu
+            loadAccountInfo(); // Update the displayed account information
         }
+
+        // Function to load saved account information
+        // Function to populate the account selection dropdown with remove buttons
+function populateAccountSelection() {
+    let accountSelect = document.getElementById("accountSelect");
+    accountSelect.innerHTML = "";
+    accounts.forEach((account, index) => {
+        let option = document.createElement("option");
+        option.text = `${account.name} (${account.accountNumber})`;
+        option.value = index;
+        accountSelect.add(option);
+
+        // Add a remove button next to each account in the dropdown
+        let removeButton = document.createElement("button");
+        removeButton.textContent = "Remove";
+        removeButton.onclick = function() {
+            removeAccount(index);
+        };
+        option.appendChild(removeButton);
+    });
+}
+
+// Function to remove the selected account
+function removeAccount(index) {
+    // Prompt the user to confirm the removal
+    if (confirm("Are you sure you want to remove this account?")) {
+        // Remove the account from the accounts array
+        accounts.splice(index, 1);
+        // Save the updated accounts to localStorage
+        saveAccountsToLocalStorage();
+        // Repopulate the account selection dropdown
+        populateAccountSelection();
+        // Load the account information for the first account in the list
+        selectedAccountIndex = 0;
+        loadAccountInfo();
+    }
+}
+
 
         function loadAccountInfo() {
             let account = accounts[selectedAccountIndex];
@@ -209,6 +283,12 @@
             updateBalance();
         }
 
+        function saveAccountsToLocalStorage() {
+            localStorage.setItem('accounts', JSON.stringify(accounts));
+        }
+
+        // Rest of your existing JavaScript code...
+        // (Functions like authenticate, withdraw, deposit, applyForLoan, etc.)
         function authenticate() {
             let passwordInput = document.getElementById("passwordInput").value;
             let account = accounts[selectedAccountIndex];
@@ -384,6 +464,18 @@
             closeTransferMoneyDialog();
         }
 
+        // Function to load saved account information
+        window.onload = function () {
+            // Load accounts from localStorage if available, otherwise use default values
+            let savedAccounts = JSON.parse(localStorage.getItem('accounts'));
+            if (savedAccounts) {
+                accounts = savedAccounts;
+            }
+            populateAccountSelection();
+            loadAccountInfo();
+        }
+
+        // Function to save accounts to localStorage
         function saveAccountsToLocalStorage() {
             localStorage.setItem('accounts', JSON.stringify(accounts));
         }
