@@ -143,13 +143,20 @@
         <div class="account-info">
             <p><strong>Name:</strong> <span id="accountName">Harshit K</span></p>
             <p><strong>Account Number:</strong> <span id="accountNumber">874924002</span></p>
-            <p><strong>Balance:</strong> <span id="balance">5,000</span></p>
+            <p><strong>Balance:</strong> <span id="balance">₹6,000</span></p>
         </div>
+
         <div id="accountSelection">
             <label for="accountSelect">Select Account:</label>
             <select id="accountSelect" onchange="switchAccount()">
                 <!-- Options will be dynamically populated -->
             </select>
+        </div>
+        <h2>Loan Properties</h2>
+        <div class="loan-properties">
+            <table>
+                <!-- Loan properties table as before -->
+            </table>
         </div>
         <div id="passwordForm">
             <input type="password" id="passwordInput" placeholder="Enter your password">
@@ -163,9 +170,11 @@
                 <button class="button" onclick="applyForLoan()">Apply for Loan</button>
             </div>
             <div class="pending-loans" id="pendingLoansContainer" style="display: none;">
+                <button class="pending-loans" onclick="claimLoan()"></button>
                 <!-- Pending loan applications will be displayed here -->
             </div>
             <div class="claimed-loans" id="claimedLoansContainer" style="display: none;">
+                <button class="claimed" onclick="payLoan()"></button>
                 <!-- Claimed loans will be displayed here -->
             </div>
         </div>
@@ -194,6 +203,8 @@
     </div>
 
     <script>
+
+        
         // Account data structure
         let accounts = [
             { name: "Harshit Krishan", accountNumber: "874924002", balance: 5000, password: "Abc@1234", pendingLoans: [], claimedLoans: [] },
@@ -219,10 +230,6 @@
 
         // Add this event listener to handle
         // Add this event listener to handle form submission
-        document.getElementById("addAccountForm").addEventListener("submit", function(event) {
-            event.preventDefault(); // Prevent the form from submitting in the traditional way
-            addNewAccount();
-        });
 
         // Function to populate the account selection dropdown
         function populateAccountSelection() {
@@ -275,146 +282,209 @@
         }
 
         // Function to authenticate user
+
+        // Function to withdraw money
+
+        let balance = accounts[selectedAccountIndex].balance; // Initial balance
+        let pendingLoanApplications =        []; // Array to store pending loan applications
+        let claimedLoans = []; // Array to store claimed loans
+        let password = accounts[selectedAccountIndex].password; // Set your desired password here
+
         function authenticate() {
-            let passwordInput = document.getElementById("passwordInput").value;
-            let account = accounts[selectedAccountIndex];
-            if (passwordInput === account.password) {
+            let enteredpassword = document.getElementById("passwordInput").value;
+            if (enteredpassword ===accounts[selectedAccountIndex].password) {
                 document.getElementById("passwordForm").style.display = "none";
                 document.getElementById("authenticatedContent").style.display = "block";
-                updatePendingLoansDisplay();
                 updateBalance();
+                updatePendingLoansDisplay();
+                updateClaimedLoansDisplay();
             } else {
                 alert("Incorrect password. Please try again.");
             }
         }
 
-        // Function to withdraw money
-function withdraw() {
+        function switchAccount() {
+            loadAccountInfo();
+            selectedAccountIndex = document.getElementById("accountSelect").value;
+            
+        }
+
+        function withdraw() {
     if (authenticateTransaction()) {
-        let account = accounts[selectedAccountIndex];
         let amount = prompt("Enter amount to withdraw:");
-        if (amount !== null && amount !== "") {
-            amount = parseFloat(amount);
-            if (!isNaN(amount) && amount > 0 && amount <= account.balance) {
-                account.balance -= amount;
-                updateBalance();
-                saveAccountsToLocalStorage();
-                alert(`₹${amount} withdrawn successfully!`);
-            } else {
-                alert("Invalid or insufficient amount.");
-            }
+        let withdrawalAmount = parseInt(amount);
+        if (!isNaN(withdrawalAmount) && withdrawalAmount > 0 && withdrawalAmount <= accounts[selectedAccountIndex].balance) {
+            accounts[selectedAccountIndex].balance -= withdrawalAmount;
+            alert(`₹${withdrawalAmount} Withdrawal successful!`);
+            updateBalance(); // Update balance display
+            updateClaimedLoansDisplay();
+            updatePendingLoansDisplay();
+            saveAccountsToLocalStorage(); // Save accounts to localStorage
+        } else {
+            alert("Invalid amount or insufficient balance.");
         }
     }
 }
 
-// Function to deposit money
 function deposit() {
     if (authenticateTransaction()) {
-        let account = accounts[selectedAccountIndex];
-        let amount = prompt("Enter amount to deposit:");
-        if (amount !== null && amount !== "") {
-            amount = parseFloat(amount);
-            if (!isNaN(amount) && amount > 0) {
-                account.balance += amount;
-                updateBalance();
-                saveAccountsToLocalStorage();
-                alert(`₹${amount} deposited successfully!`);
-            } else {
-                alert("Invalid amount.");
-            }
-        }
-    }
-}
-
-        function updateBalance() {
-            let balance = accounts[selectedAccountIndex].balance.toLocaleString('en-IN', {
-                maximumFractionDigits: 2,
-                style: 'currency',
-                currency: 'INR'
-            });
-            document.getElementById("balance").textContent = balance;
-        }
-        // Function to authenticate user for transaction
-function authenticateTransaction() {
-    let passwordInput = prompt("Enter your password to proceed with the transaction:");
-    let account = accounts[selectedAccountIndex];
-    if (passwordInput === account.password) {
-        return true;
-    } else {
-        alert("Incorrect password. Transaction aborted.");
-        return false;
-    }
-}
-
-// Function to apply for loan
-function applyForLoan() {
-    if (authenticateTransaction()) {
-        let account = accounts[selectedAccountIndex];
-        let loanType = prompt("Enter the type of loan (e.g., Car Loan, Home Loan, Personal Loan):");
-        if (loanType !== null && loanType.trim() !== "") {
-            let amount = prompt("Enter the loan amount:");
-            if (amount !== null && amount.trim() !== "") {
-                amount = parseFloat(amount);
-                if (!isNaN(amount) && amount > 0) {
-                    let tenure = prompt("Enter the loan tenure (in years):");
-                    if (tenure !== null && tenure.trim() !== "") {
-                        tenure = parseInt(tenure);
-                        if (!isNaN(tenure) && tenure > 0) {
-                            let loanApplication = {
-                                type: loanType.trim(),
-                                amount: amount,
-                                tenure: tenure
-                            };
-                            // Store loan application in the account's pending loans
-                            account.pendingLoans.push(loanApplication);
-                            updatePendingLoansDisplay();
-                            saveAccountsToLocalStorage();
-                            alert("Loan application submitted successfully!");
-                        } else {
-                            alert("Invalid loan tenure. Please enter a valid number of years.");
-                        }
-                    } else {
-                        alert("Loan tenure cannot be empty. Please enter a valid number of years.");
-                    }
-                } else {
-                    alert("Invalid loan amount. Please enter a valid amount.");
-                }
-            } else {
-                alert("Loan amount cannot be empty. Please enter a valid amount.");
-            }
+        let amount = prompt("Enter amount to Deposit:");
+        let depositAmount = parseInt(amount);
+        if (!isNaN(depositAmount) && depositAmount > 0) {
+            accounts[selectedAccountIndex].balance += depositAmount;
+            alert(`₹${depositAmount} Deposited successful!`);
+            updateBalance(); // Update balance display
+            updateClaimedLoansDisplay();
+            updatePendingLoansDisplay();
+            saveAccountsToLocalStorage(); // Save accounts to localStorage
         } else {
-            alert("Loan type cannot be empty. Please enter a valid loan type.");
+            alert("Invalid amount.");
         }
     }
 }
 
-    
-        function updatePendingLoansDisplay() {
-            let pendingLoansContainer = document.getElementById("pendingLoansContainer");
-            pendingLoansContainer.innerHTML = ""; // Clear previous content
-            if (pendingLoanApplications.length > 0) {
-                let applicationDetails = "<strong>Pending Loan Applications:</strong><br>";
-                pendingLoanApplications.forEach(function (application, index) {
-                    applicationDetails += `<p>Type: ${application.type}<br>Amount: ₹${application.amount}<br>Tenure: ${application.tenure} years</p>`;
-                    applicationDetails += `<button class="claim-button" onclick="claimLoan(${index})">Claim Loan</button>`;
-                });
-                pendingLoansContainer.innerHTML = applicationDetails;
-                pendingLoansContainer.style.display = "block"; // Show the container
-            } else {
-                pendingLoansContainer.style.display = "none"; // Hide the container if there are no pending loan applications
+
+        function applyForLoan() {
+            if (authenticateTransaction()) {
+                let loanType = prompt("Enter the type of loan (e.g., Car Loan, Home Loan, Personal Loan , Other):");
+                let l = loanType.toLowerCase();
+                if (l !== "car" &&  l !== "home" && l !== "personal" && l !== "other" ) {
+                    alert("Loan type cannot be empty. Please enter a valid loan type.");
+                } else {
+                    let amount = prompt("Enter the loan amount:");
+                    if (amount === null && amount === "") {
+                        alert("Loan amount cannot be empty. Please enter a valid amount.");
+                    }else {
+                        amount = parseFloat(amount);
+                        if (amount > 0) {
+                            let tenure = prompt("Enter the loan tenure (in years):");
+                            if (tenure > 0) {
+                                tenure = parseInt(tenure);
+                                alert("Loan application submitted successfully!");
+                                    let applicationDate = new Date();
+                                    let timerDuration = 24 * 60 * 60 * 1000; // 1 day timer
+                                    let loanApplication = {
+                                        type: loanType.trim(),
+                                        amount: amount,
+                                        tenure: tenure,
+                                        date: applicationDate.toISOString().split('T')[0],
+                                        timerEnd: Date.now() + timerDuration
+                                    };
+                                    pendingLoanApplications.push(loanApplication);
+                                    updatePendingLoansDisplay();
+                                    setTimeout(() => {
+                                        // Move loan to claimed loans after timer expires
+                                        pendingLoanApplications.splice(pendingLoanApplications.indexOf(loanApplication), 1);
+                                        claimedLoans.push(loanApplication);
+                                        updatePendingLoansDisplay();
+                                        updateClaimedLoansDisplay();
+                                    }, timerDuration);
+                                } else {
+                                    alert("Invalid loan tenure. Please enter a valid number of years.");
+                                }
+                             } else {
+                                alert("Loan tenure cannot be empty. Please enter a valid number of years.");
+                             }
+                        }
+                }
             }
         }
-    
-        function claimLoan(index) {
-            if (authenticateTransaction()) {
-                let claimedLoan = pendingLoanApplications.splice(index, 1)[0];
-                balance += claimedLoan.amount; // Add the claimed loan amount to the balance
+        
+
+        function authenticateTransaction() {
+            let passwordInput = prompt("Enter your password to proceed with the transaction:");
+            if (passwordInput === accounts[selectedAccountIndex].password) {
+                return true;
+            } else {
+                alert("Incorrect password. Transaction aborted.");
+                return false;
+            }
+        }
+
+        function updatePendingLoansDisplay() {
+    let pendingLoansContainer = document.getElementById("pendingLoansContainer");
+    pendingLoansContainer.innerHTML = "";
+
+    if (pendingLoanApplications.length > 0) {
+        let applicationDetails = "<strong>Pending Loan Applications:</strong><br>";
+
+        pendingLoanApplications.forEach(function (application) {
+            let remainingTime = Math.max(0, Math.ceil((application.timerEnd - Date.now()) / 1000));
+            applicationDetails += `<div>
+                <p>Type: ${application.type}<br>Amount: ₹${application.amount}<br>Tenure: ${application.tenure} years<br>Time Remaining: ${formatTime(remainingTime)}</p>
+                <button class="claim-button" onclick="claimLoan('${application.date}')">Claim Loan</button>
+            </div>`;
+        });
+
+        pendingLoansContainer.innerHTML = applicationDetails;
+        pendingLoansContainer.style.display = "block";
+    } else {
+        pendingLoansContainer.style.display = "none";
+    }
+}
+
+
+function updateClaimedLoansDisplay() {
+    let claimedLoansContainer = document.getElementById("claimedLoansContainer");
+    claimedLoansContainer.innerHTML = "";
+
+    if (claimedLoans.length > 0) {
+        let claimedDetails = "<strong>Claimed Loans:</strong><br>";
+
+        claimedLoans.forEach(function (loan) {
+            claimedDetails += `<div>
+                <p>Type: ${loan.type}<br>Amount: ₹${loan.amount}<br>Tenure: ${loan.tenure} years<br>Claimed on: ${loan.date}</p>
+                <button class="pay-button" onclick="payLoan('${loan.date}')">Pay Loan</button>
+            </div>`;
+        });
+
+        claimedLoansContainer.innerHTML = claimedDetails;
+        claimedLoansContainer.style.display = "block";
+    } else {
+        claimedLoansContainer.style.display = "none";
+    }
+}
+
+
+        function claimLoan(date) {
+            let claimedLoan = pendingLoanApplications.find(loan => loan.date === date);
+            if (claimedLoan) {
+                balance += claimedLoan.amount;
                 updateBalance();
-                updatePendingLoansDisplay(); // Update the display after claiming the loan
+                claimedLoans.push(claimedLoan);
+                pendingLoanApplications.splice(pendingLoanApplications.indexOf(claimedLoan), 1);
+                updatePendingLoansDisplay();
+                updateClaimedLoansDisplay();
                 alert(`Loan claimed successfully!\nType: ${claimedLoan.type}\nAmount: ₹${claimedLoan.amount}\nTenure: ${claimedLoan.tenure} years`);
             }
         }
 
+        function payLoan(date) {
+            let paidLoan = claimedLoans.find(loan => loan.date === date);
+            if (paidLoan) {
+                balance -= paidLoan.amount;
+                updateBalance();
+                claimedLoans.splice(claimedLoans.indexOf(paidLoan), 1);
+                updateClaimedLoansDisplay();
+                alert(`Loan payment successful!\nType: ${paidLoan.type}\nAmount: ₹${paidLoan.amount}\nTenure: ${paidLoan.tenure} years`);
+            }
+        }
+
+        function updateBalance() {
+            // Format balance with comma separators for thousands
+            let formattedBalance = balance.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            document.getElementById("balance").textContent = formattedBalance;
+
+            // Save the balance to localStorage
+            localStorage.setItem("balance", balance.toString());
+        }
+
+        // Function to save balance to localStorage
+        function saveBalance() {
+            localStorage.setItem("balance", balance.toString());
+        }
+
+        setInterval(updatePendingLoansDisplay, 1000); // Refresh the pending loans display every second
         // Function to show the transfer money dialog
         function showTransferMoneyDialog() {
             document.getElementById("overlay").style.display = "block";
@@ -501,15 +571,6 @@ function applyForLoan() {
                 alert("Please fill in all fields.");
             }
         }
-        window.onload = function () {
-            // Load accounts from localStorage if available, otherwise use default values
-            let savedAccounts = JSON.parse(localStorage.getItem('accounts'));
-            if (savedAccounts) {
-                accounts = savedAccounts;
-            }
-            populateAccountSelection();
-            loadAccountInfo();
-        }
             function showAddAccountDialog() {
             document.getElementById("addAccountOverlay").style.display = "block";
             document.getElementById("addAccountDialog").style.display = "block";
@@ -519,6 +580,8 @@ function applyForLoan() {
             document.getElementById("addAccountOverlay").style.display = "none";
             document.getElementById("addAccountDialog").style.display = "none";
         }
+
+        
 
 
         // Function to save accounts to localStorage
