@@ -261,6 +261,9 @@
             } else {
                 alert('Incorrect password.');
             }
+
+            saveAccountsToLocalStorage()
+            loadAccountsFromLocalStorage()
         }
 
         function withdraw() {
@@ -274,6 +277,10 @@
             } else {
                 alert('Invalid amount.');
             }
+
+
+            saveAccountsToLocalStorage()
+            loadAccountsFromLocalStorage()
         }
         }
 
@@ -287,6 +294,9 @@
             } else {
                 alert('Invalid amount.');
             }
+
+            saveAccountsToLocalStorage()
+            loadAccountsFromLocalStorage()
         }
         }
 
@@ -317,6 +327,9 @@
                 alert('Invalid loan amount.');
                 }
 
+
+                saveAccountsToLocalStorage()
+            loadAccountsFromLocalStorage()
             }
         }
 
@@ -328,6 +341,9 @@
             updateLoanInfo();
             updateAccountInfo();
             alert(`Loan of ₹${loanAmount} claimed.`);
+
+            saveAccountsToLocalStorage()
+            loadAccountsFromLocalStorage()
         }
         }
 
@@ -343,6 +359,9 @@
             } else {
                 alert('Insufficient balance to pay off the loan.');
             }
+
+            saveAccountsToLocalStorage()
+            loadAccountsFromLocalStorage()
         }
         }
 
