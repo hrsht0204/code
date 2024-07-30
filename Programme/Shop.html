@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -89,22 +90,25 @@
     </style>
 </head>
 <body>
+    <h1 style="text-align: center; background-color: #ffee00; margin: 0; padding: 20px;">HARSH STORE</h1>
+
     <!-- Top bar section -->
     <div id="topBar">
         <!-- Account information and balance -->
         <div id="accountInfo">
-            <span id="balance">Balance: ₹0</span>
+            <span id="balance">Balance: ₹50000</span>
             <div id="addMoneyForm">
                 <input type="number" id="addMoneyAmount" placeholder="Enter amount">
                 <button onclick="addMoney()">Add Money</button>
             </div>
         </div>
         <!-- Shopping cart section -->
-        <div id="cartSection">
-            <label for="cartDropdown">Shopping Cart:</label>
-            <select id="cartDropdown"></select>
-            <button id="checkoutButton" onclick="checkout()">Checkout</button>
-        </div>
+<div id="cartSection">
+    <label for="cartDropdown">Shopping Cart:</label>
+    <select id="cartDropdown"></select>
+    <button id="checkoutButton" onclick="checkout()">Checkout</button>
+</div>
+
     </div>
 
     <!-- Company dropdown section -->
@@ -128,7 +132,7 @@
     <!-- JavaScript code -->
     <script>
         // Initialize balance
-        let balance = 0;
+        let balance = 50000;
 
         // Update balance display
         function updateBalanceDisplay() {
@@ -356,33 +360,46 @@
         }
 
         // Add product to cart
-        function addToCart(product) {
+        // Initialize shopping cart
+let cart = [];
+
+// Add product to cart
+function addToCart(product) {
+    cart.push(product);
+    updateCartDisplay();
+}
+
+// Update cart dropdown display
+function updateCartDisplay() {
             const cartDropdown = document.getElementById("cartDropdown");
-            const option = document.createElement("option");
-            option.text = product.name;
-            cartDropdown.add(option);
+            cartDropdown.innerHTML = "";
+            cart.forEach(product => {
+                const option = document.createElement("option");
+                option.textContent = `${product.name} - ₹${product.price}`;
+                cartDropdown.appendChild(option);
+            });
         }
 
-        // Checkout function
-        function checkout() {
-            const cartDropdown = document.getElementById("cartDropdown");
-            const totalPrice = Array.from(cartDropdown.options).reduce((total, option) => {
-                const product = getProductByName(option.text);
-                return total + product.price;
-            }, 0);
-            if (totalPrice > balance) {
-                alert("Insufficient balance to complete the purchase.");
-            } else {
-                balance -= totalPrice;
-                updateBalanceDisplay();
-                alert("Purchase successful!");
-               
-                // Remove items from the cart dropdown after purchase
-                while (cartDropdown.options.length > 0) {
-                    cartDropdown.remove(0);
-                }
-            }
-        }
+// Handle checkout process
+function checkout() {
+    if (cart.length === 0) {
+        alert("Your cart is empty. Please add items to your cart before checking out.");
+        return;
+    }
+    
+    let totalAmount = cart.reduce((total, product) => total + product.price, 0);
+    
+    if (balance >= totalAmount) {
+        balance -= totalAmount;
+        updateBalanceDisplay();
+        alert("Checkout successful!");
+        cart = [];
+        updateCartDisplay();
+    } else {
+        alert("Insufficient balance. Please add more money to your account.");
+    }
+}
+
 
         // Helper function to get product by name
         function getProductByName(name) {
