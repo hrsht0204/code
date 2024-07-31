@@ -60,7 +60,41 @@
     border-radius: 5px;
     box-shadow: 0 0 5px rgba(0,0,0,0.1);
   }
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+    padding-top: 60px;
+  }
+  .modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+  }
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+  .close:hover,
+  .close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <div class="container">
@@ -116,28 +150,36 @@
     <button class="button" onclick="logout()">Logout</button>
   </div>
 </div>
+
+<div id="stockChartModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h2 id="modalTitle">Stock Price Chart</h2>
+    <canvas id="stockChartCanvas"></canvas>
+  </div>
+</div>
 <script>
 // Define stocks with initial prices
 let stocks = [
-  { name: 'Apple', price: 150 },
-  { name: 'Google', price: 250 },
-  { name: 'Amazon', price: 3200 },
-  { name: 'Microsoft', price: 300 },
-  { name: 'Reliance', price: 2200 }, // Indian company
-  { name: 'Infosys', price: 1400 }, // Indian company
-  { name: 'TCS', price: 3100 }, // Indian company
-  { name: 'HUL', price: 2300 }, // Indian company - Hindustan Unilever Ltd.
-  { name: 'Nestlé India', price: 16500 }, // Indian company
-  { name: 'Britannia', price: 3900 }, // Indian company - Britannia Industries Ltd.
-  { name: 'Coca-Cola', price: 55 },
-  { name: 'PepsiCo', price: 150 },
-  { name: 'McDonald\'s', price: 240 },
-  { name: 'Starbucks', price: 110 },
-  { name: 'Walmart', price: 140 },
-  { name: 'Tesla', price: 700 },
-  { name: 'Facebook', price: 350 },
-  { name: 'Alphabet', price: 2200 }, // Google's parent company
-  { name: 'IBM', price: 120 }, // International Business Machines Corporation
+  { name: 'Apple', price: 150, priceHistory: [150] },
+  { name: 'Google', price: 250, priceHistory: [250] },
+  { name: 'Amazon', price: 3200, priceHistory: [3200] },
+  { name: 'Microsoft', price: 300, priceHistory: [300] },
+  { name: 'Reliance', price: 2200, priceHistory: [2200] },
+  { name: 'Infosys', price: 1400, priceHistory: [1400] },
+  { name: 'TCS', price: 3100, priceHistory: [3100] },
+  { name: 'HUL', price: 2300, priceHistory: [2300] },
+  { name: 'Nestlé India', price: 16500, priceHistory: [16500] },
+  { name: 'Britannia', price: 3900, priceHistory: [3900] },
+  { name: 'Coca-Cola', price: 55, priceHistory: [55] },
+  { name: 'PepsiCo', price: 150, priceHistory: [150] },
+  { name: 'McDonald\'s', price: 240, priceHistory: [240] },
+  { name: 'Starbucks', price: 110, priceHistory: [110] },
+  { name: 'Walmart', price: 140, priceHistory: [140] },
+  { name: 'Tesla', price: 700, priceHistory: [700] },
+  { name: 'Facebook', price: 350, priceHistory: [350] },
+  { name: 'Alphabet', price: 2200, priceHistory: [2200] },
+  { name: 'IBM', price: 120, priceHistory: [120] },
 ];
 
 let loggedInUser = null;
@@ -146,7 +188,8 @@ let transactionHistory = [];
 let userStocks = {}; // Object to track stocks owned by the user
 let marketToggled = false;
 let marketStatusToggled = false;
-let updateInterval; // Variable to store the update interval
+let updateInterval; 
+let stockChart;// Variable to store the update interval
 
 // Simulate user authentication
 function login() {
@@ -192,9 +235,6 @@ function register() {
   }
 }
 
-// Logout
-function logout() {
-// Logout
 function logout() {
   loggedInUser = null;
   userBalance = 10000; // Reset user balance on logout
@@ -204,7 +244,22 @@ function logout() {
   document.getElementById('loginSection').style.display = 'block';
   clearInterval(updateInterval); // Stop updating market after logout
 }
+
+
+function saveData() {
+  const data = {
+    user: loggedInUser,
+    balance: userBalance,
+    stocks: userStocks,
+    transactions: transactionHistory,
+  };
+  localStorage.setItem('marketData', JSON.stringify(data));
+  alert('Data saved successfully!');
 }
+
+
+// Logout
+
 
 // Function to toggle market
 function toggleMarket() {
@@ -272,17 +327,18 @@ function updateMarket() {
     }
   }, 3000); // Update every 3 seconds
 }
-
 // Function to update stock table
 function updateStockTable() {
-  const tableBody = document.getElementById('stockTable');
-  tableBody.innerHTML = '';
+  const table = document.getElementById('stockTable');
+  table.innerHTML = '';
   stocks.forEach(stock => {
     const change = (Math.round((stock.price - 150) * 100) / 100).toFixed(2);
     const arrowIcon = change > 0 ? '▲' : change < 0 ? '▼' : ''; // Upward arrow for positive change, downward arrow for negative change
     const arrowColor = change > 0 ? 'green' : change < 0 ? 'red' : ''; // Green color for positive change, red color for negative change
     const row = `<tr>
-      <td>${stock.name}</td>
+
+      <td><a href="#" onclick="openStockChart('${stock.name}')">${stock.name}</a></td>
+
       <td>$${stock.price.toFixed(2)}</td>
       <td style="color: ${arrowColor};">${arrowIcon} ${change}</td>
       <td>
@@ -290,9 +346,12 @@ function updateStockTable() {
         <button class="button" onclick="sell('${stock.name}')">Sell</button>
       </td>
     </tr>`;
-    tableBody.innerHTML += row;
+    table.innerHTML += row;
+    stock.price += parseFloat(change);
+    stock.priceHistory.push(stock.price); // Update price history
   });
 }
+
 
 // Function to handle buying stocks
 function buy(stockName) {
@@ -337,6 +396,7 @@ function sell(stockName) {
   }
 }
 
+
 // Function to update user balance
 function updateBalance() {
   document.getElementById('balance').innerText = userBalance.toFixed(2);
@@ -373,8 +433,8 @@ function updateMarketStatus() {
 function saveData() {
   alert('Data saved successfully!');
 }
-
 // Initial setup
+
 function initialize() {
   document.getElementById('loginSection').style.display = 'block';
   document.getElementById('marketSection').style.display = 'none';
@@ -389,7 +449,6 @@ function initialize() {
     updateTransactionHistory();
   }
 }
-
 // Function to update user data in localStorage
 function updateUserData() {
   const userData = {
@@ -400,7 +459,56 @@ function updateUserData() {
   localStorage.setItem('userData', JSON.stringify(userData));
 }
 
-initialize();
+
+function openStockChart(stockName) {
+  const stock = stocks.find(s => s.name === stockName);
+  if (stock) {
+    document.getElementById('modalTitle').innerText = `${stock.name} Price Chart`;
+    const ctx = document.getElementById('stockChartCanvas').getContext('2d');
+    if (stockChart) {
+      stockChart.destroy();
+    }
+    stockChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: Array(stock.priceHistory.length).fill(''), // Generate labels based on price history length
+        datasets: [{
+          label: `${stock.name} Price`,
+          data: stock.priceHistory,
+          borderColor: 'rgba(75, 192, 192, 1)',
+          borderWidth: 2,
+          fill: false,
+        }],
+      },
+      options: {
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Time',
+            },
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Price',
+            },
+          },
+        },
+      },
+    });
+    document.getElementById('stockChartModal').style.display = 'block';
+  }
+}
+
+// Close stock chart modal
+function closeModal() {
+  document.getElementById('stockChartModal').style.display = 'none';
+}
+
+updateInterval = setInterval(updateMarket, 5000);
+
+
 </script>
 </body>
 </html>
