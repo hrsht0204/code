@@ -274,11 +274,11 @@
                 currentAccount.balance -= amount;
                 updateAccountInfo();
                 alert(`Withdrawal successful. New balance: ₹${currentAccount.balance}`);
+                saveAccountsToLocalStorage()
+                loadAccountsFromLocalStorage()
             } else {
                 alert('Invalid amount.');
             }
-
-
             saveAccountsToLocalStorage()
             loadAccountsFromLocalStorage()
         }
@@ -291,6 +291,8 @@
                 currentAccount.balance += amount;
                 updateAccountInfo();
                 alert(`Deposit successful. New balance: ₹${currentAccount.balance}`);
+                saveAccountsToLocalStorage()
+                loadAccountsFromLocalStorage()
             } else {
                 alert('Invalid amount.');
             }
@@ -460,6 +462,21 @@
             populateAccountSelect();
             switchAccount();
         };
+
+
+        function removeAccount(identifier) {
+            let index = accounts.findIndex(account => account.accountNumber === identifier || accounts.indexOf(account) === identifier);
+            if (index >= 0) {
+                accounts.splice(index, 1);
+                saveAccountsToLocalStorage();
+                populateAccountSelect();
+                updateAccountInfo();
+                updateLoanInfo();
+                console.log(`Account with identifier '${identifier}' removed.`);
+            } else {
+                console.error('Invalid account identifier.');
+            }
+        }
     </script>
 </body>
 </html>
